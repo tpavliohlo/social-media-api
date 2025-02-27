@@ -1,9 +1,11 @@
 from django.db.models import Count
 from django.shortcuts import render
 from rest_framework import generics
+from rest_framework.permissions import IsAuthenticated
 
-from core.models import Profile
-from core.serializers import RetrieveProfileSerializer
+from core.models import Profile, Post
+from core.permissions import IsOwnerOrReadOnly
+from core.serializers import RetrieveProfileSerializer, PostSerializer, PostRetrieveSerializer
 
 
 class RetrieveProfileView(generics.RetrieveAPIView):
@@ -17,3 +19,19 @@ class RetrieveProfileView(generics.RetrieveAPIView):
             following=Count("user__following", distinct=True),
             followers=Count("user__followers", distinct=True),
         )
+
+
+class PostListView(generics.ListAPIView):
+    queryset = Post.objects.all()
+
+    def get_serializer_class(self):
+        if self.action == "list":
+            return PostSerializer
+        return PostRetrieveSerializer
+
+    def get_permissions(self):
+        if self.action in ("retrieve", "create"):
+            self.permission_classes = [IsAuthenticated]
+        else:
+            self.permission_classes = [IsOwnerOrReadOnly]
+        return super().get_permissions()
