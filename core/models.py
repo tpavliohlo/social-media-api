@@ -1,4 +1,4 @@
-from django.conf.global_settings import AUTH_USER_MODEL
+from social_media_api.settings import AUTH_USER_MODEL
 from django.db import models
 
 class Profile(models.Model):
