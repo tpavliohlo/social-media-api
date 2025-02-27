@@ -10,7 +10,7 @@ class Profile(models.Model):
     description = models.TextField(blank=True, null=True)
     # image_profile = models.ImageField(upload_to='profile_images/', blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
-    privace_settings = models.CharField(
+    privacy_settings = models.CharField(
         max_length=10,
         choices=PrivacySettings,
         default=PrivacySettings.PUBLIC,
