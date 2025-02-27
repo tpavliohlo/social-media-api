@@ -1,6 +1,6 @@
 from django.db.models import Count
 from django.shortcuts import render
-from rest_framework import generics
+from rest_framework import generics, viewsets
 from rest_framework.permissions import IsAuthenticated
 
 from core.models import Profile, Post
@@ -21,7 +21,7 @@ class RetrieveProfileView(generics.RetrieveAPIView):
         )
 
 
-class PostListView(generics.ListAPIView):
+class PostListView(viewsets.ModelViewSet):
     queryset = Post.objects.all()
 
     def get_serializer_class(self):
