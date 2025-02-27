@@ -16,6 +16,11 @@ class Profile(models.Model):
         default=PrivacySettings.PUBLIC,
     )
 
+    class Meta:
+        indexes = [
+            models.Index(fields=["user"]),
+        ]
+
     def __str__(self):
         return f"Profile of {self.user}"
 
@@ -25,6 +30,13 @@ class Post(models.Model):
     body = models.TextField(max_length=255)
     owner = models.ForeignKey(AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="posts")
     created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=["owner"]),
+            models.Index(fields=["created_at"]),
+        ]
+        ordering = ["-created_at"]
 
     def __str__(self):
         return self.title
@@ -45,6 +57,11 @@ class Follower(models.Model):
 
     class Meta:
         unique_together = ("follower", "following")
+        indexes = [
+            models.Index(fields=["follower", "following"]),
+            models.Index(fields=["created_at"]),
+        ]
+        ordering = ["-created_at"]
 
     def __str__(self):
         return f"{self.follower} follows {self.following}"
@@ -65,6 +82,11 @@ class Like(models.Model):
 
     class Meta:
         unique_together = ("user", "post")
+        indexes = [
+            models.Index(fields=["user"]),
+            models.Index(fields=["post"]),
+        ]
+        ordering = ["-created_at"]
 
     def __str__(self):
         return f"{self.user} likes {self.post}"
@@ -84,7 +106,11 @@ class Comment(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        unique_together = ("user", "post")
+        indexes = [
+            models.Index(fields=["post"]),
+            models.Index(fields=["user"]),
+        ]
+        ordering = ["-created_at"]
 
     def __str__(self):
         return f"Comment by {self.user} on {self.post.title}"
@@ -105,6 +131,11 @@ class Blocked(models.Model):
 
     class Meta:
         unique_together = ("blocker", "blocked")
+        indexes = [
+            models.Index(fields=["blocker"]),
+            models.Index(fields=["blocked"]),
+        ]
+        ordering = ["-created_at"]
 
     def __str__(self):
         return f"{self.blocker} blocked {self.blocked}"
