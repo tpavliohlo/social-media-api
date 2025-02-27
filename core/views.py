@@ -35,3 +35,6 @@ class PostListView(viewsets.ModelViewSet):
         else:
             self.permission_classes = [IsOwnerOrReadOnly]
         return super().get_permissions()
+
+    def perform_create(self, serializer):
+        serializer.save(owner=self.request.user)
