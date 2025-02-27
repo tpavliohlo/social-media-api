@@ -2,6 +2,7 @@ from django.urls import path, include
 from rest_framework import routers
 
 from core.views import RetrieveProfileView, PostListView
+from user.views import UserFollowersFollowingViewSet
 
 router = routers.DefaultRouter()
 router.register(r'posts', PostListView)
