@@ -5,10 +5,10 @@ from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from core.models import Profile, Post, Like
+from core.models import Profile, Post, Like, Comment
 from core.permissions import IsOwnerOrReadOnly
 from core.serializers import RetrieveProfileSerializer, PostSerializer, PostRetrieveSerializer, LikesListPostSerializer, \
-    LikeCreatePostSerializer
+    LikeCreatePostSerializer, CommentsListPostSerializer
 
 
 class RetrieveProfileView(generics.RetrieveAPIView):
@@ -41,10 +41,6 @@ class PostListView(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(owner=self.request.user)
-
-    def retrieve(self, request, *args, **kwargs):
-        print("Requested by user:", request.user)
-        return super().retrieve(request, *args, **kwargs)
 
 
 class LikesView(views.APIView):
@@ -84,4 +80,45 @@ class LikesView(views.APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
         existing_like.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response(
+            {"detail": "Like deleted successfully."},
+            status=status.HTTP_204_NO_CONTENT)
+
+
+class CommentsView(views.APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, pk, *args, **kwargs):
+        post_id = get_object_or_404(Post, pk=pk)
+        commentaries = Comment.objects.filter(post=post_id)
+        serializer = CommentsListPostSerializer(commentaries, many=True)
+        return Response(serializer.data)
+
+    def post(self, request, pk, *args, **kwargs):
+        post_id = get_object_or_404(Post, pk=pk)
+        body = request.data.get("body")
+        if not body:
+            return Response(
+                {"detail": "Body is required."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        commentary = Comment.objects.create(
+            post=post_id,
+            user=request.user,
+            body=body
+        )
+
+        serializer = CommentsListPostSerializer(commentary)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    def delete(self, request, pk, comment_id, *args, **kwargs):
+        post = get_object_or_404(Post, pk=pk)
+        comment = get_object_or_404(Comment, pk=comment_id, post=post)
+        if comment.user != request.user:
+            return Response(
+                {"detail": "You do not have permission to delete this comment."},
+                status=status.HTTP_403_FORBIDDEN)
+        comment.delete()
+        return Response(
+            {"detail": "Comment deleted successfully."},
+            status=status.HTTP_204_NO_CONTENT)

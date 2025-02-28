@@ -1,7 +1,7 @@
 from django.urls import path, include
 from rest_framework import routers
 
-from core.views import RetrieveProfileView, PostListView, LikesView
+from core.views import RetrieveProfileView, PostListView, LikesView, CommentsView
 from user.views import UserFollowersFollowingViewSet
 
 router = routers.DefaultRouter()
@@ -19,7 +19,8 @@ urlpatterns = [
         RetrieveProfileView.as_view(),
         name="profile-retrieve"),
     path("posts/<int:pk>/likes/", LikesView.as_view(), name="likes-view"),
-
+    path("posts/<int:pk>/comments/", CommentsView.as_view(), name="comments-view"),
+    path("posts/<int:pk>/comments/<int:comment_id>/delete/", CommentsView.as_view(), name="comments-view"),
 ]
 
 app_name = 'core'

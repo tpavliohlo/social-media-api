@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from core.models import Profile, Post, Like
+from core.models import Profile, Post, Like, Comment
 
 
 class RetrieveProfileSerializer(serializers.ModelSerializer):
@@ -36,6 +36,8 @@ class PostRetrieveSerializer(PostSerializer):
 
 
 class LikesListPostSerializer(serializers.ModelSerializer):
+    user = serializers.ReadOnlyField(source='user.username')
+
     class Meta:
         model = Like
         fields = ["id", "user"]
@@ -45,3 +47,11 @@ class LikeCreatePostSerializer(LikesListPostSerializer):
     class Meta:
         model = Like
         fields = LikesListPostSerializer.Meta.fields + ["post"]
+
+
+class CommentsListPostSerializer(serializers.ModelSerializer):
+    user = serializers.ReadOnlyField(source="user.username")
+
+    class Meta:
+        model = Comment
+        fields = ["id", "user", "body"]
