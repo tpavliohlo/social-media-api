@@ -1,7 +1,7 @@
 from django.urls import path, include
 from rest_framework import routers
 
-from core.views import RetrieveProfileView, PostListView, LikesView, CommentsView
+from core.views import RetrieveProfileView, PostListView, LikesView, CommentsView, BlockedUserView
 from user.views import UserFollowersFollowingViewSet
 
 router = routers.DefaultRouter()
