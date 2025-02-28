@@ -17,10 +17,33 @@ urlpatterns = [
     path(
         "profile/<int:id>/",
         RetrieveProfileView.as_view(),
-        name="profile-retrieve"),
-    path("posts/<int:pk>/likes/", LikesView.as_view(), name="likes-view"),
-    path("posts/<int:pk>/comments/", CommentsView.as_view(), name="comments-view"),
-    path("posts/<int:pk>/comments/<int:comment_id>/delete/", CommentsView.as_view(), name="comments-view"),
+        name="profile-retrieve"
+    ),
+    path(
+        "posts/<int:pk>/likes/",
+        LikesView.as_view(),
+        name="likes-view"
+    ),
+    path(
+        "posts/<int:pk>/comments/",
+        CommentsView.as_view(),
+        name="comments-view"
+    ),
+    path(
+        "posts/<int:pk>/comments/<int:comment_id>/delete/",
+        CommentsView.as_view(),
+        name="comments-view"
+    ),
+    path(
+        "profile/blocked_users/",
+        BlockedUserView.as_view(),
+        name="blocked-users-retrieve"
+    ),
+    path(
+        "profile/<int:pk>/block/",
+        BlockedUserView.as_view(),
+        name="block-user"
+    ),
 ]
 
 app_name = 'core'

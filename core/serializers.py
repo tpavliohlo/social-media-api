@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from core.models import Profile, Post, Like, Comment
+from core.models import Profile, Post, Like, Comment, Blocked
 
 
 class RetrieveProfileSerializer(serializers.ModelSerializer):
@@ -55,3 +55,17 @@ class CommentsListPostSerializer(serializers.ModelSerializer):
     class Meta:
         model = Comment
         fields = ["id", "user", "body"]
+
+
+class BlockedListUserSerializer(serializers.ModelSerializer):
+    blocked = serializers.ReadOnlyField(source='blocked.username')
+
+    class Meta:
+        model = Blocked
+        fields = ["id", "blocked"]
+
+
+class BlockedUserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Blocked
+        fields = ["id", "blocked"]

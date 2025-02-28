@@ -5,10 +5,11 @@ from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from core.models import Profile, Post, Like, Comment
+from core.models import Profile, Post, Like, Comment, Blocked
 from core.permissions import IsOwnerOrReadOnly
 from core.serializers import RetrieveProfileSerializer, PostSerializer, PostRetrieveSerializer, LikesListPostSerializer, \
-    LikeCreatePostSerializer, CommentsListPostSerializer
+    LikeCreatePostSerializer, CommentsListPostSerializer, BlockedListUserSerializer
+from user.models import User
 
 
 class RetrieveProfileView(generics.RetrieveAPIView):
@@ -121,4 +122,59 @@ class CommentsView(views.APIView):
         comment.delete()
         return Response(
             {"detail": "Comment deleted successfully."},
+            status=status.HTTP_204_NO_CONTENT)
+
+
+class BlockedUserView(views.APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        owner = request.user
+        blocked_users = owner.blocked_users.all()
+        serializer = BlockedListUserSerializer(blocked_users, many=True)
+        return Response(serializer.data)
+
+    def post(self, request, pk, *args, **kwargs):
+        user = get_object_or_404(User, pk=pk)
+        blocker = self.request.user
+        if user == blocker:
+            return Response(
+                {"detail": "You can not block yourself."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        if Blocked.objects.filter(blocker=blocker, blocked=user).exists():
+            return Response(
+                {"detail": f"{user.username} already blocked."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        blocked_user = Blocked.objects.create(
+            blocker=request.user,
+            blocked=user
+        )
+        return Response(
+            {"detail": f"{user.username} blocked successfully."},
+            status=status.HTTP_201_CREATED
+        )
+
+    def delete(self, request, pk, *args, **kwargs):
+        user = get_object_or_404(User, pk=pk)
+        blocker = self.request.user
+        if user == self.request.user:
+            return Response(
+                {"detail": "You can not unblock yourself."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        blocked_in_bd = Blocked.objects.filter(
+                blocker=blocker,
+                blocked=user
+        )
+        if not blocked_in_bd.exists():
+            return Response(
+                {"detail": f"{user.username} already unblocked."},
+                status=status.HTTP_400_BAD_REQUEST)
+
+        blocked_in_bd.delete()
+        return Response(
+            {f"{user} unblocked successfully."},
             status=status.HTTP_204_NO_CONTENT)
