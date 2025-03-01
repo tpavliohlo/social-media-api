@@ -100,7 +100,10 @@ class PostListView(viewsets.ModelViewSet):
                   owner__in=following_users,)
                   ).exclude(
                     owner__in=blocked_users
-                )
+                ).annotate(
+                likes_count=Count("likes", distinct=True),
+                comments_count=Count("comments", distinct=True),
+            )
 
 
         return queryset

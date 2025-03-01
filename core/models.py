@@ -44,11 +44,25 @@ class Profile(models.Model):
         return f"Profile of {self.user}"
 
 
+def create_custom_path_post(instance, filename):
+    _, extension = os.path.splitext(filename)
+    return os.path.join(
+        "uploads/posts_images/",
+        f"{slugify(instance.title)}-{uuid.uuid4()}{extension}"
+    )
+
+
 class Post(models.Model):
     title = models.CharField(max_length=255)
     body = models.TextField(max_length=255)
     owner = models.ForeignKey(AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="posts")
     created_at = models.DateTimeField(auto_now_add=True)
+
+    image_post = models.ImageField(
+        upload_to=create_custom_path_post,
+        blank=True,
+        null=True
+    )
 
     class Meta:
         indexes = [

@@ -43,12 +43,12 @@ urlpatterns = [
     path(
         "posts/<int:pk>/comments/",
         CommentsView.as_view(),
-        name="comments-view"
+        name="comments-create-view"
     ),
     path(
         "posts/<int:pk>/comments/<int:comment_id>/delete/",
         CommentsView.as_view(),
-        name="comments-view"
+        name="comments-delete"
     ),
     path(
         "profile/blocked_users/",
