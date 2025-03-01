@@ -1,4 +1,4 @@
-from django.db.models import Count, Value, Case, When, IntegerField
+from django.db.models import Count, Value, Case, When, IntegerField, Q
 from django.shortcuts import render
 from rest_framework import generics, viewsets, views, status
 from rest_framework.generics import get_object_or_404, UpdateAPIView
@@ -13,7 +13,11 @@ from core.models import (
     Blocked,
     Follower,
 )
-from core.permissions import IsOwnerOrReadOnly
+from core.permissions import (
+    IsOwnerOrReadOnly,
+    CanLikePostPermission,
+    CanCommentOnPostPermission,
+)
 from core.serializers import (
     RetrieveProfileSerializer,
     PostSerializer,
@@ -23,7 +27,8 @@ from core.serializers import (
     CommentsListPostSerializer,
     BlockedListUserSerializer,
     UserProfileSerializer,
-    LikedPostSerializer, FollowerSerializer,
+    LikedPostSerializer,
+    FollowerSerializer,
 )
 from user.models import User
 
@@ -61,30 +66,43 @@ class PostListView(viewsets.ModelViewSet):
     def get_queryset(self):
         user = self.request.user
         queryset = self.queryset
-        if self.action in ("list", "retrieve"):
-            queryset = queryset.annotate(
-                likes_count=Count(
-                    "likes",
-                    distinct=True,
-                ),
-                comments_count=Count(
-                    "comments",
-                    distinct=True,
-                ),
+        profile_public = Profile.PrivacySettings.PUBLIC
+        private_public = Profile.PrivacySettings.PRIVATE
 
+        if not user.is_authenticated:
+            queryset = queryset.filter(
+                owner__profile__privacy_settings=profile_public,
             )
-        if user.is_authenticated:
+
+        else:
             following_users = Follower.objects.filter(
                 follower=user
             ).values_list("following_id", flat=True)
 
+            blocked_users = Blocked.objects.filter(
+                blocker=user
+            ).values_list("blocked", flat=True)
+
             queryset = queryset.annotate(
                 priority=Case(
-                    When(owner_id__in=following_users, then=Value(1)),
+                    When(
+                        owner_id__in=following_users,
+                        then=Value(1)
+                    ),
                     default=Value(0),
                     output_field=IntegerField()
                 )
-            ).order_by("-priority", "created_at")
+            ).order_by("-priority", "-created_at")
+
+            queryset = queryset.filter(
+                Q(owner__profile__privacy_settings=profile_public) |
+                Q(owner__profile__privacy_settings=private_public,
+                  owner__in=following_users,)
+                  ).exclude(
+                    owner__in=blocked_users
+                )
+
+
         return queryset
 
     def perform_create(self, serializer):
@@ -134,7 +152,7 @@ class LikesView(views.APIView):
 
 
 class CommentsView(views.APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, CanCommentOnPostPermission]
 
     def get(self, request, pk, *args, **kwargs):
         post_id = get_object_or_404(Post, pk=pk)
@@ -243,7 +261,7 @@ class ProfileView(generics.RetrieveAPIView, UpdateAPIView):
 
 
 class LikedPostView(views.APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, CanLikePostPermission]
 
     def get(self, request, *args, **kwargs):
         user = self.request.user
