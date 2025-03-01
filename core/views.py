@@ -23,7 +23,7 @@ from core.serializers import (
     CommentsListPostSerializer,
     BlockedListUserSerializer,
     UserProfileSerializer,
-    LikedPostSerializer,
+    LikedPostSerializer, FollowerSerializer,
 )
 from user.models import User
 
@@ -250,3 +250,44 @@ class LikedPostView(views.APIView):
         likes = Like.objects.filter(user=user)
         serializer = LikedPostSerializer(likes, many=True)
         return Response(serializer.data)
+
+
+class FollowSerializer(views.APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, pk, *args, **kwargs):
+        user = self.request.user
+        profile_pk = get_object_or_404(User, pk=pk)
+        existing_following = Follower.objects.filter(
+            follower=user,
+            following=profile_pk
+        ).first()
+        if existing_following:
+            return Response(
+                {"detail": "You have already followed!"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        create_follower = Follower.objects.create(
+            follower=user,
+            following=profile_pk
+        )
+        serializer = FollowerSerializer(create_follower)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    def delete(self, request, pk, *args, **kwargs):
+        user = self.request.user
+        profile_pk = get_object_or_404(User, pk=pk)
+        existing_following = Follower.objects.filter(
+            follower=user,
+            following=profile_pk
+        ).first()
+        if not existing_following:
+            return Response(
+                {"detail": "You have not already follower!"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        existing_following.delete()
+        return Response(
+            {"detail": "Unfollowed successfully!"},
+            status=status.HTTP_204_NO_CONTENT
+        )

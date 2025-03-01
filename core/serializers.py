@@ -1,7 +1,7 @@
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
-from core.models import Profile, Post, Like, Comment, Blocked
+from core.models import Profile, Post, Like, Comment, Blocked, Follower
 from user.serializers import UserSerializer
 
 
@@ -173,3 +173,9 @@ class LikedPostSerializer(serializers.ModelSerializer):
     class Meta:
         model = Like
         fields = ["id", "post", "created_at"]
+
+
+class FollowerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Follower
+        fields = ["id", "follower", "following"]

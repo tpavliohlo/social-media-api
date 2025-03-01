@@ -2,7 +2,7 @@ from django.urls import path, include
 from rest_framework import routers
 
 from core.views import RetrieveProfileView, PostListView, LikesView, CommentsView, BlockedUserView, ProfileView, \
-    LikedPostView
+    LikedPostView, FollowSerializer
 from user.views import UserFollowersFollowingViewSet
 
 router = routers.DefaultRouter()
@@ -34,6 +34,11 @@ urlpatterns = [
         "profile/liked/",
         LikedPostView.as_view(),
         name="liked-posts-view"
+    ),
+    path(
+        "profile/<int:pk>/following-unfollowing/",
+        FollowSerializer.as_view(),
+        name="following-unfollowing-view"
     ),
     path(
         "posts/<int:pk>/comments/",
