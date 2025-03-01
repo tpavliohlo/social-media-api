@@ -1,5 +1,19 @@
+import os
+import uuid
+
+from django.utils.text import slugify
+
 from social_media_api.settings import AUTH_USER_MODEL
 from django.db import models
+
+
+def create_custom_path_profile(instance, filename):
+    _, extension = os.path.splitext(filename)
+    return os.path.join(
+        "uploads/profile_images/",
+        f"{slugify(instance.user)}-{uuid.uuid4()}{extension}"
+    )
+
 
 class Profile(models.Model):
     class PrivacySettings(models.TextChoices):
@@ -8,7 +22,12 @@ class Profile(models.Model):
 
     user = models.OneToOneField(AUTH_USER_MODEL, on_delete=models.CASCADE)
     description = models.TextField(blank=True, null=True)
-    # image_profile = models.ImageField(upload_to='profile_images/', blank=True, null=True)
+    image_profile = models.ImageField(
+        upload_to=create_custom_path_profile,
+        blank=True,
+        null=True,
+        default='static/default_image/default_profile.png'
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     privacy_settings = models.CharField(
         max_length=10,
