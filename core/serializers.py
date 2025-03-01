@@ -165,3 +165,11 @@ class UserProfileSerializer(UserSerializer):
                 profile.save()
 
             return instance
+
+
+class LikedPostSerializer(serializers.ModelSerializer):
+    post = serializers.SlugRelatedField(slug_field='title', read_only=True)
+
+    class Meta:
+        model = Like
+        fields = ["id", "post", "created_at"]

@@ -23,6 +23,7 @@ from core.serializers import (
     CommentsListPostSerializer,
     BlockedListUserSerializer,
     UserProfileSerializer,
+    LikedPostSerializer,
 )
 from user.models import User
 
@@ -239,3 +240,13 @@ class ProfileView(generics.RetrieveAPIView, UpdateAPIView):
             blocked=Count('blocked_users', distinct=True)
         ).first()
         return profile
+
+
+class LikedPostView(views.APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        user = self.request.user
+        likes = Like.objects.filter(user=user)
+        serializer = LikedPostSerializer(likes, many=True)
+        return Response(serializer.data)
