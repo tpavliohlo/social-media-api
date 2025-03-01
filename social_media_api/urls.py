@@ -15,11 +15,16 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from debug_toolbar.toolbar import debug_toolbar_urls
+from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path, include
 
-urlpatterns = [
+from social_media_api import settings
+
+urlpatterns = ([
     path('admin/', admin.site.urls),
     path("api/v1/social-media/", include("core.urls"), name="social_media"),
     path("api/v1/social-media/user/", include("user.urls"), name="user"),
-] + debug_toolbar_urls()
+]
+    + static(settings.STATIC_URL, document_root=settings.MEDIA_ROOT)
+    + debug_toolbar_urls())
