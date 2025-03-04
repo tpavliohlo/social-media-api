@@ -134,6 +134,11 @@ class Comment(models.Model):
     post = models.ForeignKey(
         Post,
         on_delete=models.CASCADE,
+        related_name="commentaries"
+    )
+    body = models.ForeignKey(
+        Post,
+        on_delete=models.CASCADE,
         related_name="comments"
     )
     created_at = models.DateTimeField(auto_now_add=True)
